@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+ *{
+      text-align: center;
+      font-family: 'inter';
+      /* Mengatur semua */
+  }
+  @keyframes Abody {
+      from{opacity: 0%;}
+      to{opacity: 100%;}
+      /* Animasi body */
+  }
+    body{
+        border: solid rgb(63, 62, 62);
+        width: 370px;
+        height: 480px;
+        margin-top: 8px;
+        background-image: url("pipinale.png");
+         /* mengatur body */
+    }
+    a {
+        position: absolute;
+        padding: 14px 25px;
+        text-align: center;
+        display: inline-block;
+        border-radius: 30%;
+        top: 75%;
+        left: 10%;
+        text-decoration: none;
+        color: white;
+        border: 3px solid #4e0303;
+        background-color: #4e0303;;
+        /* Mengatur bentuk dan letak link */
+    }
+    a:hover {
+        color: black;
+        background-color: white;
+        /* Mengatur jika link diarahkan oleh kursor */
+    }
+    a:visited {
+        cursor: progress;
+        /* Mengatur jika link di klik */
+    }
+</style>
+</head>
+<body onload="startGame()">
+<script>
+var myGamePiece;
+var myBackground;
+var myObstacles = [];
+var volumeslider = 0.5;
+// menyimpan variable
+
+function startGame() {
+    myGamePiece = new component(50, 70, "karakter0.png", 120, 400, "image");
+    myBackground = new component(370, 480 ,"Background2.png", 0, 0, "image");
+    myScore = new component ("20px", "Monotype", "white", 20, 40, "text");
+    myMusic = new sound("Musik.mp3");
+    myGameArea.start();
+    // Memanggil karakter, background, skor, suara, musik
+}
+
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = 370; //270
+        this.canvas.height = 480; //480
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.frameNo = 0;
+        this.interval = setInterval(updateGameArea, 20);
+        window.addEventListener('keydown', function (e) {
+        myGameArea.key = e.keyCode;
+        })
+        window.addEventListener('keyup', function (e) {
+        myGameArea.key = false;
+        })
+        },
+          // Membuat game bisa digerakkan dengan keyboard
+    clear : function() {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // function clear
+    },
+    stop : function() {
+        clearInterval(this.interval);
+    }    
+}
+
+function component (width, height, color, x, y, type) {
+    this.type = type;
+    if (type == "image") {
+        this.image = new Image();
+        this.image.src = color;
+    }
+    this.type = type;
+    this.width = width;
+    this.height = height;
+    this.speedX = 0;
+    this.speedY = 0;    
+    this.x = x;
+    this.y = y;    
+    this.update = function() {
+        ctx = myGameArea.context;
+        if (type == "image") {
+            ctx.drawImage(this.image,
+            this.x,
+            this.y,
+            this.width, this.height);
+        }else {
+            ctx.fillStyle = color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            // Mengatur skor dan image
+        }
+        }
+    this.newPos = function() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.hitRight();
+        this.hitLeft();
+    }
+    this.hitRight = function() {
+        var rockRight = myGameArea.canvas.width - this.width;
+        if (this.x > rockRight) {
+            this.x = rockRight;
+        }
+    }
+    this.hitLeft = function() {
+        var rockLeft = 0;
+        if (this.x < rockLeft) {
+            this.x = rockLeft;
+            // membuat karakter tidak menembus canvas
+        }
+    }
+    this.crashWith = function(otherobj) {
+        var myleft = this.x;
+        var myright = this.x + (this.width);
+        var mytop = this.y;
+        var mybottom = this.y + (this.height);
+        var otherleft = otherobj.x;
+        var otherright = otherobj.x + (otherobj.width);
+        var othertop = otherobj.y;
+        var otherbottom = otherobj.y + (otherobj.height);
+    }
+}
+
+function updateGameArea() {
+    var x, size, i, random, random1;
+    for (i = 0; i < myObstacles.length; i += 1) {
+        if (myGamePiece.crashWith(myObstacles[i])) {
+            myGameArea.stop();
+            return;
+            // Apa yang terjadi jika terkena rintangan
+        } 
+    }
+    myGameArea.clear();
+    myBackground.newPos();
+    myBackground.update();
+    myGameArea.frameNo += 1;
+    if (myGameArea.frameNo == 1 || everyinterval(150)) {
+        y = myGameArea.canvas.width;
+        pos = Math.floor(Math.random()*13)
+        pos1 = Math.floor(Math.random()*150+150);
+        pos2 = Math.floor(Math.random()*335);
+        minWidth = 120;
+        maxWidth = 220;
+        width = Math.floor(Math.random()*(maxWidth-minWidth+1)+minWidth);
+        minGap = 290;
+        maxGap = 200;
+        gap = Math.floor(Math.random()*(maxGap-minGap+1)+minGap);
+        myObstacles.push(new component(200, 200, "Pinata.png", y - width - gap, 0, "image"));
+        myObstacles.push(new component (200, 200, "Pinata1.png", pos2, -300, "image"));
+        myObstacles.push(new component (200, 200, "Pinata.png", pos1, 0, "image"));
+        // Mengatur rintangan
+
+    }
+    for (i = 0; i < myObstacles.length; i += 1) {
+        myObstacles[i].y += 1;
+        myObstacles[i].update();
+         // Kecepatan Game
+    }
+    myScore.text = "SCORE: " + myGameArea.frameNo;
+    myScore.update();
+    myGamePiece.newPos();    
+    myGamePiece.update();
+    myGamePiece.speedX = 0;
+    myGamePiece.speedY = 0;
+    // Mengatur skor
+    myGamePiece.image.src = "karakter0.png"
+    if (myGameArea.key && myGameArea.key == 65) {myGamePiece.speedX = -5; 
+    myGamePiece.image.src = "karakter21.png"}
+    if (myGameArea.key && myGameArea.key == 68) {myGamePiece.speedX = 5; 
+    myGamePiece.image.src = "karakter32.png"}
+    // Menjalankan game dengan keyboard dan mengubah bentuk karakter
+    myMusic.play();
+    // Memunculkan musik dalam game
+}
+function sound(src) {
+    this.sound = document.createElement("audio");
+    this.sound.src = src;
+    this.sound.setAttribute("preload","auto");
+    this.sound.setAttribute("controls", "none");
+    this.sound.style.display = "none";
+    this.sound.volume = volumeslider;
+    document.body.appendChild(this.sound);
+
+    this.play = function() {
+        this.sound.play()
+    }
+    this.stop = function() {
+        this.sound.pause();
+        // Mengatur suara
+    }
+}
+
+function everyinterval(n) {
+    if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
+    return false;
+    // Pengulangan array
+}
+
+</script>
+<div>
+    <a href="index.html">Back</a>
+</div>
+</body>
+</html>
